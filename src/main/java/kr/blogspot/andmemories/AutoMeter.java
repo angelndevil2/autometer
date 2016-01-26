@@ -1,71 +1,120 @@
 package kr.blogspot.andmemories;
 
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.NonNull;
+import lombok.Setter;
 import org.apache.jmeter.control.LoopController;
+import org.apache.jmeter.engine.JMeterEngine;
 import org.apache.jmeter.engine.StandardJMeterEngine;
 import org.apache.jmeter.protocol.http.sampler.HTTPSampler;
 import org.apache.jmeter.reporters.ResultCollector;
 import org.apache.jmeter.reporters.Summariser;
+import org.apache.jmeter.samplers.Sampler;
 import org.apache.jmeter.testelement.TestPlan;
 import org.apache.jmeter.threads.ThreadGroup;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.collections.HashTree;
 
+import java.io.File;
+
 /**
  * @author k, Created on 16. 1. 26.
  */
-public class AutoMeter {
+public @Data class AutoMeter {
+
+    private JMeterEngine jmeter;
+    private Sampler sampler;
+    @Setter(AccessLevel.NONE)
+    private String baseDir;
+    @Setter(AccessLevel.NONE)
+    private String confDir;
+    @Setter(AccessLevel.NONE)
+    private String binDir;
+    private HashTree testPlanTree;
+    private LoopController loopController;
+    private ThreadGroup threadGroup;
+    private TestPlan testPlan;
 
     /**
      * JMeter initialization (properties, log levels, locale, etc)
      */
-    public static void initJMeter() {
+    private void initJMeter() {
 
-        String base_dir = System.getenv("AUTOMETER_HOME");
-        String conf_dir = base_dir+System.getProperty("file.separator")+"conf";
-        JMeterUtils.setJMeterHome(base_dir);
-        JMeterUtils.loadJMeterProperties(conf_dir+System.getProperty("file.separator")+"jmeter.properties");
+        JMeterUtils.setJMeterHome(baseDir);
+        JMeterUtils.loadJMeterProperties(confDir+ File.separator +"jmeter.properties");
         JMeterUtils.initLogging();// you can comment this line out to see extra log messages of i.e. DEBUG level
         JMeterUtils.initLocale();
+
     }
 
-    public static void main(String[] args) {
+    /**
+     * HTTP Sampler
+     */
+    private void initHttpSampler() {
+        HTTPSampler sampler = new HTTPSampler();
+        sampler.setDomain("localhost");
+        sampler.setPort(8080);
+        sampler.setPath("/");
+        sampler.setMethod("GET");
+        setSampler(sampler);
+    }
 
-        //JMeter Engine
-        StandardJMeterEngine jmeter = new StandardJMeterEngine();
-
-        initJMeter();
-
-        // JMeter Test Plan, basic all u JOrphan HashTree
-        HashTree testPlanTree = new HashTree();
-
-        // HTTP Sampler
-        HTTPSampler httpSampler = new HTTPSampler();
-        httpSampler.setDomain("localhost");
-        httpSampler.setPort(8080);
-        httpSampler.setPath("/");
-        httpSampler.setMethod("GET");
-
-        // Loop Controller
-        LoopController loopController = new LoopController();
+    /**
+     * Loop Controller
+     */
+    private void initLoopController() {
+        loopController = new LoopController();
         loopController.setLoops(1);
-        loopController.addTestElement(httpSampler);
+        loopController.addTestElement(getSampler());
         loopController.setFirst(true);
         loopController.initialize();
+    }
 
-        // Thread Group
-        ThreadGroup threadGroup = new ThreadGroup();
+    /**
+     * Thread Group
+     */
+    private void initThreadGroup() {
+        threadGroup = new ThreadGroup();
         threadGroup.setNumThreads(1);
         threadGroup.setRampUp(1);
-        threadGroup.setSamplerController(loopController);
+        threadGroup.setSamplerController(getLoopController());
+    }
+
+    /**
+     * set application directories
+     */
+    public void setDirs(@NonNull final String baseDir) {
+        this.baseDir = baseDir;
+        this.confDir = baseDir + File.separator + "conf";
+        this.binDir = baseDir + File.separator + "bin";
+    }
+
+    public void doTest() {
+        //JMeter Engine
+        setJmeter(new StandardJMeterEngine());
+
+        initJMeter();
+        initHttpSampler();
+
+        // JMeter Test Plan, basic all u JOrphan HashTree
+        setTestPlanTree(new HashTree());
+
+
+        // Loop Controller
+        initLoopController();
+
+        // Thread Group
+        initThreadGroup();
 
         // Test Plan
-        TestPlan testPlan = new TestPlan("Create JMeter Script From Java Code");
+        setTestPlan(new TestPlan("Create JMeter Script From Java Code"));
 
         // Construct Test Plan from previously initialized elements
-        testPlanTree.add("testPlan", testPlan);
-        testPlanTree.add("loopController", loopController);
-        testPlanTree.add("threadGroup", threadGroup);
-        testPlanTree.add("httpSampler", httpSampler);
+        getTestPlanTree().add("testPlan", getTestPlan());
+        getTestPlanTree().add("loopController", getLoopController());
+        getTestPlanTree().add("httpSampler", getSampler());
+        getTestPlanTree().add("threadGroup", getThreadGroup());
 
         //add Summarizer output to get test progress in stdout like:
         // summary =      2 in   1.3s =    1.5/s Avg:   631 Min:   290 Max:   973 Err:     0 (0.00%)
@@ -78,11 +127,27 @@ public class AutoMeter {
         String logFile = "example.jtl";
         ResultCollector result_collector = new ResultCollector(summer);
         result_collector.setFilename(logFile);
-        testPlanTree.add(testPlanTree.getArray()[0], result_collector);
-
+        //getTestPlanTree().add(getTestPlanTree().getArray()[0], result_collector);
+        getTestPlanTree().add("httpSampler", result_collector);
 
         // Run Test Plan
-        jmeter.configure(testPlanTree);
-        jmeter.run();
+        getJmeter().configure(getTestPlanTree());
+        ((StandardJMeterEngine)getJmeter()).run();
+    }
+
+    public static void main(String[] args) {
+
+        AutoMeter autoMeter = new AutoMeter();
+
+        String baseDir = System.getenv("AUTOMETER_HOME");
+        if (baseDir == null) {
+            baseDir = System.getProperty("autometer.home");
+        }
+        if (baseDir == null) baseDir = ".";
+
+        autoMeter.setDirs(baseDir);
+
+        autoMeter.doTest();
+
     }
 }
