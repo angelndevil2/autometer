@@ -19,6 +19,8 @@ import org.apache.jorphan.collections.HashTree;
 import java.io.File;
 
 /**
+ * One Thread Group & HttpRequest & local JMeter Tester
+ *
  * @author k, Created on 16. 1. 26.
  */
 public @Data class AutoMeter {
@@ -35,6 +37,14 @@ public @Data class AutoMeter {
     private LoopController loopController;
     private ThreadGroup threadGroup;
     private TestPlan testPlan;
+    /**
+     * ThreadGroup ramp up time in seconds
+     */
+    private int rampUpTime = 1;
+    /**
+     * Thread number in ThreadGroup
+     */
+    private int numOfThread = 1;
 
     /**
      * JMeter initialization (properties, log levels, locale, etc)
@@ -76,8 +86,8 @@ public @Data class AutoMeter {
      */
     private void initThreadGroup() {
         threadGroup = new ThreadGroup();
-        threadGroup.setNumThreads(1);
-        threadGroup.setRampUp(1);
+        threadGroup.setNumThreads(getNumOfThread());
+        threadGroup.setRampUp(getRampUpTime());
         threadGroup.setSamplerController(getLoopController());
     }
 
@@ -90,7 +100,7 @@ public @Data class AutoMeter {
         this.binDir = baseDir + File.separator + "bin";
     }
 
-    public void doTest() {
+    public final void doTest() {
         //JMeter Engine
         setJmeter(new StandardJMeterEngine());
 
@@ -118,7 +128,7 @@ public @Data class AutoMeter {
 
         //add Summarizer output to get test progress in stdout like:
         // summary =      2 in   1.3s =    1.5/s Avg:   631 Min:   290 Max:   973 Err:     0 (0.00%)
-        Summariser summer = null;
+        Summariser summer=null;
         String summariserName = JMeterUtils.getPropDefault("summariser.name", "summary");
         if (summariserName.length() > 0) {
             summer = new Summariser(summariserName);
@@ -127,8 +137,8 @@ public @Data class AutoMeter {
         String logFile = "example.jtl";
         ResultCollector result_collector = new ResultCollector(summer);
         result_collector.setFilename(logFile);
-        //getTestPlanTree().add(getTestPlanTree().getArray()[0], result_collector);
-        getTestPlanTree().add("httpSampler", result_collector);
+        getTestPlanTree().add(getTestPlanTree().getArray()[0], result_collector);
+        //getTestPlanTree().add("httpSampler", result_collector);
 
         // Run Test Plan
         getJmeter().configure(getTestPlanTree());
