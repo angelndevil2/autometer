@@ -15,6 +15,8 @@ automated jmeter with java code
 
 3. setRampUpTime(int)
 
+4. if want loop setLoopCont(int), if loop forever setLoopForever(true)
+
 4. addHttpSampler(HTTPSampler) or addHttpSampler(String, int, String, String)
 
 5. doTest()
