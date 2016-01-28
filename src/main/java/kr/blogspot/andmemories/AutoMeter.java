@@ -1,5 +1,6 @@
 package kr.blogspot.andmemories;
 
+import kr.blogspot.andmemories.reporters.AutoMeterResultCollector;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
@@ -134,6 +135,8 @@ public @Data class AutoMeter {
 
             if (loopController == null) initDefaultLoopController();
             threadGroup.setSamplerController(loopController);
+            loopController.setContinueForever(loopForever); // must be after setSamplerController
+
 
             threadGroup.setProperty(TestElement.TEST_CLASS, ThreadGroup.class.getName());
             threadGroup.setProperty(TestElement.GUI_CLASS, ThreadGroupGui.class.getName());
@@ -162,7 +165,7 @@ public @Data class AutoMeter {
      * add {@link HTTPSampler}
      * @param sampler
      */
-    public void addHttpSampler(HTTPSampler sampler) {
+    public void addHttpSampler(@NonNull HTTPSampler sampler) {
         sampler.setProperty(TestElement.TEST_CLASS, HTTPSampler.class.getName());
         sampler.setProperty(TestElement.GUI_CLASS, HttpTestSampleGui.class.getName());
         this.sampler.add(sampler);
@@ -222,8 +225,6 @@ public @Data class AutoMeter {
         HashTree threadGroupHashTree = testPlanTree.add(testPlan, threadGroup);
         threadGroupHashTree.add(sampler);
 
-        if (loopForever) loopController.setContinueForever(true); // must be latter initThreadGroup
-
         testPlanTree.add(testPlanTree.getArray()[0], resultCollector);
     }
 
@@ -237,7 +238,7 @@ public @Data class AutoMeter {
         }
         // Store execution results into a .jtl file
         //String logFile = "example.jtl";
-        resultCollector = new ResultCollector(summer);
+        resultCollector = new AutoMeterResultCollector(summer);
         resultCollector.setName(DEFAULT_RESULT_COLLECTOR_NAME);
         resultCollector.setProperty(TestElement.TEST_CLASS, ResultCollector.class.getName());
         resultCollector.setProperty(TestElement.GUI_CLASS, SummaryReport.class.getName());
