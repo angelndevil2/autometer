@@ -4,19 +4,30 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.Setter;
+import org.apache.jmeter.config.Argument;
+import org.apache.jmeter.config.Arguments;
+import org.apache.jmeter.config.gui.ArgumentsPanel;
 import org.apache.jmeter.control.LoopController;
+import org.apache.jmeter.control.gui.LoopControlPanel;
+import org.apache.jmeter.control.gui.TestPlanGui;
 import org.apache.jmeter.engine.JMeterEngine;
 import org.apache.jmeter.engine.StandardJMeterEngine;
+import org.apache.jmeter.protocol.http.control.gui.HttpTestSampleGui;
 import org.apache.jmeter.protocol.http.sampler.HTTPSampler;
 import org.apache.jmeter.reporters.ResultCollector;
 import org.apache.jmeter.reporters.Summariser;
 import org.apache.jmeter.samplers.Sampler;
+import org.apache.jmeter.save.SaveService;
+import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.testelement.TestPlan;
 import org.apache.jmeter.threads.ThreadGroup;
+import org.apache.jmeter.threads.gui.ThreadGroupGui;
 import org.apache.jmeter.util.JMeterUtils;
+import org.apache.jmeter.visualizers.SummaryReport;
 import org.apache.jorphan.collections.HashTree;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +39,7 @@ import java.util.List;
  *     <li>set env "AUTOMETER_HOME" or set property autometer.home</li>
  *     <li>{@link #setNumOfThread(int)}</li>
  *     <li>{@link #setRampUpTime(int)}</li>
+ *     <li>{@link #setLoopCount(int)}</li>
  *     <li>{@link #addHttpSampler(HTTPSampler)} or {@link #addHttpSampler(String, int, String, String)}</li>
  *     <li>{@link #doTest()}</li>
  * </ol>
@@ -35,6 +47,11 @@ import java.util.List;
  * @author k, Created on 16. 1. 26.
  */
 public @Data class AutoMeter {
+
+    private final static String DEFAULT_TEST_PLAN_NAME = "test plan form java code";
+    private final static String DEFAULT_THREAD_GROUP_NAME = "default thread group";
+    private final static String DEFAULT_LOOP_CONTROLLER_NAME = "default loop controller";
+    private final static String DEFAULT_RESULT_COLLECTOR_NAME = "default result collector";
 
     private JMeterEngine jmeter;
     private final List<Sampler> sampler = new ArrayList<Sampler>();
@@ -44,10 +61,14 @@ public @Data class AutoMeter {
     private String confDir;
     @Setter(AccessLevel.NONE)
     private String binDir;
-    private HashTree testPlanTree;
+    private final HashTree testPlanTree = new HashTree();
     private LoopController loopController;
     private ThreadGroup threadGroup;
-    private TestPlan testPlan;
+    private final TestPlan testPlan = new TestPlan();
+    private boolean loopForever;
+    private Arguments userDefinedArguments;
+    private ResultCollector resultCollector;
+
     /**
      * ThreadGroup ramp up time in seconds
      */
@@ -59,18 +80,20 @@ public @Data class AutoMeter {
     /**
      * {@link LoopController}'s test loop count
      */
-    private int loopCount  =1;
+    private int loopCount  = 1;
     /**
      * set directory's from env or properties
      */
     private void prepareTest() {
-        String baseDir = System.getenv("AUTOMETER_HOME");
         if (baseDir == null) {
-            baseDir = System.getProperty("autometer.home");
-        }
-        if (baseDir == null) baseDir = ".";
+            String baseDir = System.getenv("AUTOMETER_HOME");
+            if (baseDir == null) {
+                baseDir = System.getProperty("autometer.home");
+            }
+            if (baseDir == null) baseDir = ".";
 
-        setDirs(baseDir);
+            setBaseDir(baseDir);
+        }
     }
 
     /**
@@ -82,41 +105,54 @@ public @Data class AutoMeter {
         JMeterUtils.loadJMeterProperties(confDir+ File.separator +"jmeter.properties");
         JMeterUtils.initLogging();// you can comment this line out to see extra log messages of i.e. DEBUG level
         JMeterUtils.initLocale();
-
+        userDefinedArguments = (Arguments) new ArgumentsPanel().createTestElement();
     }
 
     /**
      * Loop Controller
      */
-    private void initLoopController() {
-
-        if (getLoopController() == null) {
-            loopController = new LoopController();
-            loopController.setLoops(getLoopCount());
-            for (Sampler s : sampler)
-                loopController.addTestElement(s);
-            loopController.setFirst(true);
-            loopController.initialize();
-        }
+    private void initDefaultLoopController() {
+        loopController = new LoopController();
+        loopController.initialize();
+        loopController.setLoops(loopCount);
+        loopController.setFirst(true);
+        loopController.setName(DEFAULT_LOOP_CONTROLLER_NAME);
+        loopController.setProperty(TestElement.TEST_CLASS, LoopController.class.getName());
+        loopController.setProperty(TestElement.GUI_CLASS, LoopControlPanel.class.getName());
     }
 
     /**
      * Thread Group
      */
-    private void initThreadGroup() {
+    private void initDefaultThreadGroup() {
 
-        if (getThreadGroup() == null) {
+        if (threadGroup == null) {
             threadGroup = new ThreadGroup();
-            threadGroup.setNumThreads(getNumOfThread());
-            threadGroup.setRampUp(getRampUpTime());
-            threadGroup.setSamplerController(getLoopController());
+            threadGroup.setName(DEFAULT_THREAD_GROUP_NAME);
+            threadGroup.setNumThreads(numOfThread);
+            threadGroup.setRampUp(rampUpTime);
+
+            if (loopController == null) initDefaultLoopController();
+            threadGroup.setSamplerController(loopController);
+
+            threadGroup.setProperty(TestElement.TEST_CLASS, ThreadGroup.class.getName());
+            threadGroup.setProperty(TestElement.GUI_CLASS, ThreadGroupGui.class.getName());
         }
+    }
+
+    private void initTestPlan() {
+        if (testPlan.getName() == null) {
+            testPlan.setName(DEFAULT_TEST_PLAN_NAME);
+        }
+        testPlan.setUserDefinedVariables(userDefinedArguments);
+        testPlan.setProperty(TestElement.TEST_CLASS, TestPlan.class.getName());
+        testPlan.setProperty(TestElement.GUI_CLASS, TestPlanGui.class.getName());
     }
 
     /**
      * set application directories
      */
-    public void setDirs(@NonNull final String baseDir) {
+    public void setBaseDir(@NonNull final String baseDir) {
         this.baseDir = baseDir;
         this.confDir = baseDir + File.separator + "conf";
         this.binDir = baseDir + File.separator + "bin";
@@ -127,6 +163,8 @@ public @Data class AutoMeter {
      * @param sampler
      */
     public void addHttpSampler(HTTPSampler sampler) {
+        sampler.setProperty(TestElement.TEST_CLASS, HTTPSampler.class.getName());
+        sampler.setProperty(TestElement.GUI_CLASS, HttpTestSampleGui.class.getName());
         this.sampler.add(sampler);
     }
 
@@ -146,17 +184,50 @@ public @Data class AutoMeter {
         addHttpSampler(sampler);
     }
 
+    public void setTestPlanName(String name) { testPlan.setName(name); }
     /**
      * Construct Test Plan from previously initialized elements
+     *
+     * <ol>
+     *     <li>prepare test</li>
+     *     <li>init jmeter</li>
+     *     <li>init test plan</li>
+     *     <li>init ThreadGroup - init LoopController</li>
+     *     <li>init ResultCollector</li>
+     *     <li>add user defined arguments</li>
+     * </ol>
+     *
+     * {@link #addHttpSampler(HTTPSampler)} or {@link #addHttpSampler(String, int, String, String)} should be called before this method called
      */
-    private void contructTestPlan() {
-        getTestPlanTree().add("testPlan", getTestPlan());
-        getTestPlanTree().add("loopController", getLoopController());
-        getTestPlanTree().add("httpSampler", getSampler());
-        getTestPlanTree().add("threadGroup", getThreadGroup());
+    private void constructTestPlan() {
+
+        prepareTest();
+
+        //JMeter Engine
+        setJmeter(new StandardJMeterEngine());
+
+        initJMeter();
+
+        initTestPlan();
+
+        // Thread Group
+        initDefaultThreadGroup();
+
+        initDefaultResultCollector();
+
+        // add test plan
+        testPlanTree.add(testPlan);
+
+        // add threadGroup under test plan
+        HashTree threadGroupHashTree = testPlanTree.add(testPlan, threadGroup);
+        threadGroupHashTree.add(sampler);
+
+        if (loopForever) loopController.setContinueForever(true); // must be latter initThreadGroup
+
+        testPlanTree.add(testPlanTree.getArray()[0], resultCollector);
     }
 
-    private void initResultCollector() {
+    private void initDefaultResultCollector() {
         //add Summarizer output to get test progress in stdout like:
         // summary =      2 in   1.3s =    1.5/s Avg:   631 Min:   290 Max:   973 Err:     0 (0.00%)
         Summariser summer=null;
@@ -166,57 +237,44 @@ public @Data class AutoMeter {
         }
         // Store execution results into a .jtl file
         //String logFile = "example.jtl";
-        ResultCollector result_collector = new ResultCollector(summer);
-        //ResultCollector result_collector = new ResultCollector();
-        //result_collector.setFilename(logFile);
-        getTestPlanTree().add(getTestPlanTree().getArray()[0], result_collector);
-        //getTestPlanTree().add("httpSampler", result_collector);
+        resultCollector = new ResultCollector(summer);
+        resultCollector.setName(DEFAULT_RESULT_COLLECTOR_NAME);
+        resultCollector.setProperty(TestElement.TEST_CLASS, ResultCollector.class.getName());
+        resultCollector.setProperty(TestElement.GUI_CLASS, SummaryReport.class.getName());
+        //resultCollector.setFilename(logFile);
+    }
+
+    public void addArgument(String name, String value) {
+        userDefinedArguments.addArgument(new Argument(name, value, (String)null));
+    }
+
+    public void addArgument(Argument arg) {
+        userDefinedArguments.addArgument(arg);
+    }
+
+    public void addArgument(String name, String value, String metadata) {
+        userDefinedArguments.addArgument(new Argument(name, value, metadata));
+    }
+
+    public final void printTestPlanJmx() throws IOException {
+        constructTestPlan();
+
+        SaveService.saveTree(testPlanTree, System.out);
     }
 
     /**
      * <ol>
-     *     <li>prepare test</li>
-     *     <li>init jmeter</li>
-     *     <li>set TestPlanTree</li>
-     *     <li>init LoopController</li>
-     *     <li>init ThreadGroup</li>
-     *     <li>set TestPlan</li>
-     *     <li>contruct TestPlan</li>
-     *     <li>init ResultCollector</li>
+     *     <li>construct TestPlan</li>
      *     <li>run test</li>
      * </ol>
-     *
-     * {@link #addHttpSampler(HTTPSampler)} or {@link #addHttpSampler(String, int, String, String)} should be called before this method called
      */
     public final void doTest() {
 
-        prepareTest();
+        constructTestPlan();
 
-        //JMeter Engine
-        setJmeter(new StandardJMeterEngine());
-
-        initJMeter();
-
-        // JMeter Test Plan, basic all u JOrphan HashTree
-        setTestPlanTree(new HashTree());
-
-        // Loop Controller
-        initLoopController();
-
-        // Thread Group
-        initThreadGroup();
-
-        // Test Plan
-        setTestPlan(new TestPlan("Create JMeter Script From Java Code"));
-
-        contructTestPlan();
-
-        initResultCollector();
-
-        System.out.println(getTestPlanTree());
         // Run Test Plan
-        getJmeter().configure(getTestPlanTree());
-        ((StandardJMeterEngine)getJmeter()).run();
+        getJmeter().configure(testPlanTree);
+        ((StandardJMeterEngine)jmeter).run();
     }
 
     public static void main(String[] args) {
