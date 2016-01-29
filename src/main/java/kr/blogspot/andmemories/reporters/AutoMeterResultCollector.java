@@ -13,7 +13,7 @@ import java.util.Formatter;
 /**
  * @author k, Created on 16. 1. 29.
  */
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public @Data class AutoMeterResultCollector extends ResultCollector {
 
@@ -32,7 +32,6 @@ public @Data class AutoMeterResultCollector extends ResultCollector {
             f.format(FORMAT, r.getThreadName(), r.getURL().getPath(), r.getLatency(), r.getConnectTime(), r.getIdleTime(), r.getTime(), r.getAllThreads());
             System.out.println(f);
         }
-
     }
 
 }
