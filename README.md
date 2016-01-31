@@ -20,3 +20,5 @@ automated jmeter with java code
 4. addHttpSampler(HTTPSampler) or addHttpSampler(String, int, String, String)
 
 5. doTest()
+
+* cpu busy% collect if setCollectRemoteSystemInfo(true) and [system-info](https://github.com/angelndevil2/system-info) package is installed in target machine
