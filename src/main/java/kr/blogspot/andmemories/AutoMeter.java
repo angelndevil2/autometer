@@ -1,5 +1,6 @@
 package kr.blogspot.andmemories;
 
+import kr.blogspot.andmemories.common.HTTPResultCalculator;
 import kr.blogspot.andmemories.reporters.AutoMeterResultCollector;
 import kr.blogspot.andmemories.reporters.SystemInfoCollector;
 import lombok.AccessLevel;
@@ -17,6 +18,7 @@ import org.apache.jmeter.engine.JMeterEngine;
 import org.apache.jmeter.engine.StandardJMeterEngine;
 import org.apache.jmeter.protocol.http.control.gui.HttpTestSampleGui;
 import org.apache.jmeter.protocol.http.sampler.HTTPSampler;
+import org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy;
 import org.apache.jmeter.reporters.Summariser;
 import org.apache.jmeter.samplers.Sampler;
 import org.apache.jmeter.save.SaveService;
@@ -43,7 +45,7 @@ import java.util.List;
  *     <li>{@link #setNumOfThread(int)}</li>
  *     <li>{@link #setRampUpTime(int)}</li>
  *     <li>{@link #setLoopCount(int)}</li>
- *     <li>{@link #addHttpSampler(HTTPSampler)} or {@link #addHttpSampler(String, int, String, String)}</li>
+ *     <li>{@link #addHttpSampler(HTTPSamplerProxy)} or {@link #addHttpSampler(String, int, String, String)}</li>
  *     <li>{@link #doTest()}</li>
  * </ol>
  *
@@ -72,6 +74,9 @@ public @Data class AutoMeter {
     private boolean loopForever;
     private Arguments userDefinedArguments;
     private AutoMeterResultCollector resultCollector;
+    private final HTTPResultCalculator calculator = new HTTPResultCalculator();
+    private final ResultViewer resultViewer = new ResultViewer();
+
     /**
      * flag for collect system information
      */
@@ -177,9 +182,11 @@ public @Data class AutoMeter {
      * add {@link HTTPSampler}
      * @param sampler
      */
-    public void addHttpSampler(@NonNull HTTPSampler sampler) {
+    public void addHttpSampler(@NonNull HTTPSamplerProxy sampler) {
         sampler.setProperty(TestElement.TEST_CLASS, HTTPSampler.class.getName());
         sampler.setProperty(TestElement.GUI_CLASS, HttpTestSampleGui.class.getName());
+        sampler.setUseKeepAlive(true);
+        sampler.setAutoRedirects(true);
         this.sampler.add(sampler);
         String domain = sampler.getDomain();
         if (domain !=null && !this.httpDomains.containsKey(domain)) {
@@ -195,7 +202,7 @@ public @Data class AutoMeter {
      * @param method http request method
      */
     public void addHttpSampler(String domain, int port, String path, String method) {
-        HTTPSampler sampler = new HTTPSampler();
+        HTTPSamplerProxy sampler = new HTTPSamplerProxy();
         sampler.setDomain(domain);
         sampler.setPort(port);
         sampler.setPath(path);
@@ -217,7 +224,7 @@ public @Data class AutoMeter {
      *     <li>add user defined arguments</li>
      * </ol>
      *
-     * {@link #addHttpSampler(HTTPSampler)} or {@link #addHttpSampler(String, int, String, String)} should be called before this method called
+     * {@link #addHttpSampler(HTTPSamplerProxy)} or {@link #addHttpSampler(String, int, String, String)} should be called before this method called
      */
     void constructTestPlan() {
 
@@ -261,6 +268,8 @@ public @Data class AutoMeter {
         resultCollector.setName(DEFAULT_RESULT_COLLECTOR_NAME);
         resultCollector.setProperty(TestElement.TEST_CLASS, AutoMeterResultCollector.class.getName());
         resultCollector.setProperty(TestElement.GUI_CLASS, SummaryReport.class.getName());
+        resultCollector.setCalculator(calculator);
+        calculator.setResultViewer(resultViewer);
         //resultCollector.setFilename(logFile);
     }
 
@@ -309,6 +318,8 @@ public @Data class AutoMeter {
     public final void doTest() {
 
         constructTestPlan();
+        calculator.start();
+        resultViewer.start();
 
         // Run Test Plan
         getJmeter().configure(testPlanTree);
