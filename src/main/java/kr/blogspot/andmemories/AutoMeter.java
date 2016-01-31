@@ -1,10 +1,12 @@
 package kr.blogspot.andmemories;
 
 import kr.blogspot.andmemories.reporters.AutoMeterResultCollector;
+import kr.blogspot.andmemories.reporters.SystemInfoCollector;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.extern.log4j.Log4j;
 import org.apache.jmeter.config.Argument;
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.config.gui.ArgumentsPanel;
@@ -15,7 +17,6 @@ import org.apache.jmeter.engine.JMeterEngine;
 import org.apache.jmeter.engine.StandardJMeterEngine;
 import org.apache.jmeter.protocol.http.control.gui.HttpTestSampleGui;
 import org.apache.jmeter.protocol.http.sampler.HTTPSampler;
-import org.apache.jmeter.reporters.ResultCollector;
 import org.apache.jmeter.reporters.Summariser;
 import org.apache.jmeter.samplers.Sampler;
 import org.apache.jmeter.save.SaveService;
@@ -30,6 +31,7 @@ import org.apache.jorphan.collections.HashTree;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -47,6 +49,7 @@ import java.util.List;
  *
  * @author k, Created on 16. 1. 26.
  */
+@Log4j
 public @Data class AutoMeter {
 
     private final static String DEFAULT_TEST_PLAN_NAME = "test plan form java code";
@@ -68,7 +71,16 @@ public @Data class AutoMeter {
     private final TestPlan testPlan = new TestPlan();
     private boolean loopForever;
     private Arguments userDefinedArguments;
-    private ResultCollector resultCollector;
+    private AutoMeterResultCollector resultCollector;
+    /**
+     * flag for collect system information
+     */
+    private boolean collectRemoteSystemInfo;
+    /**
+     * if system information collect is true, this list will be populated
+     * with domain name and system information collector which {@link SystemInfoCollector} instance
+     */
+    private final HashMap<String, SystemInfoCollector> httpDomains = new HashMap<String, SystemInfoCollector>();
 
     /**
      * ThreadGroup ramp up time in seconds
@@ -169,6 +181,10 @@ public @Data class AutoMeter {
         sampler.setProperty(TestElement.TEST_CLASS, HTTPSampler.class.getName());
         sampler.setProperty(TestElement.GUI_CLASS, HttpTestSampleGui.class.getName());
         this.sampler.add(sampler);
+        String domain = sampler.getDomain();
+        if (domain !=null && !this.httpDomains.containsKey(domain)) {
+            this.httpDomains.put(sampler.getDomain(), new SystemInfoCollector(domain));
+        }
     }
 
     /**
@@ -197,12 +213,13 @@ public @Data class AutoMeter {
      *     <li>init test plan</li>
      *     <li>init ThreadGroup - init LoopController</li>
      *     <li>init ResultCollector</li>
+     *     <li>init SystemInfoCollector</li>
      *     <li>add user defined arguments</li>
      * </ol>
      *
      * {@link #addHttpSampler(HTTPSampler)} or {@link #addHttpSampler(String, int, String, String)} should be called before this method called
      */
-    private void constructTestPlan() {
+    void constructTestPlan() {
 
         prepareTest();
 
@@ -217,6 +234,8 @@ public @Data class AutoMeter {
         initDefaultThreadGroup();
 
         initDefaultResultCollector();
+
+        initSystemInfoCollector();
 
         // add test plan
         testPlanTree.add(testPlan);
@@ -240,9 +259,21 @@ public @Data class AutoMeter {
         //String logFile = "example.jtl";
         resultCollector = new AutoMeterResultCollector(summer);
         resultCollector.setName(DEFAULT_RESULT_COLLECTOR_NAME);
-        resultCollector.setProperty(TestElement.TEST_CLASS, ResultCollector.class.getName());
+        resultCollector.setProperty(TestElement.TEST_CLASS, AutoMeterResultCollector.class.getName());
         resultCollector.setProperty(TestElement.GUI_CLASS, SummaryReport.class.getName());
         //resultCollector.setFilename(logFile);
+    }
+
+    private void initSystemInfoCollector() {
+        if (collectRemoteSystemInfo) {
+            ShutdownHandler sh = new ShutdownHandler();
+            for (String domain : httpDomains.keySet()) {
+                sh.addThread(httpDomains.get(domain).start());
+            }
+            resultCollector.setHttpDomains(httpDomains);
+
+            Runtime.getRuntime().addShutdownHook(new Thread(sh));
+        }
     }
 
     public void addArgument(String name, String value) {
@@ -257,10 +288,16 @@ public @Data class AutoMeter {
         userDefinedArguments.addArgument(new Argument(name, value, metadata));
     }
 
+    /**
+     * print test plan to stdout
+     *
+     * @throws IOException
+     */
     public final void printTestPlanJmx() throws IOException {
         constructTestPlan();
 
         SaveService.saveTree(testPlanTree, System.out);
+
     }
 
     /**
@@ -284,4 +321,25 @@ public @Data class AutoMeter {
         autoMeter.doTest();
 
     }
+
+
+    private final class ShutdownHandler implements Runnable {
+
+        private final ArrayList<Thread> threads = new ArrayList<Thread>();
+        public void addThread(Thread t) {
+            threads.add(t);
+        }
+        @Override
+        public void run() {
+            for (Thread t : threads) {
+                t.interrupt();
+                try {
+                    t.join(1000);
+                } catch (InterruptedException e) {
+                    log.error("shutdown "+t.toString()+" interrupted ", e);
+                }
+            }
+        }
+    }
+
 }

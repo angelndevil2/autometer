@@ -11,14 +11,19 @@ public class AutoMeterTest {
 
     @Test
     public void MainTest() {
-        AutoMeter.main(null);
+        AutoMeter autoMeter = new AutoMeter();
+        autoMeter.setNumOfThread(10);
+        autoMeter.addHttpSampler("localhost", 8080, "/", "GET");
+        autoMeter.setCollectRemoteSystemInfo(true);
+        autoMeter.setLoopCount(10);
+        autoMeter.doTest();
     }
 
     @Test
     public void saveJMX() throws IOException {
         AutoMeter autoMeter = new AutoMeter();
 
-        autoMeter.setTestPlanName("test plan form java code");
+        autoMeter.setTestPlanName("test plan from java code");
         autoMeter.printTestPlanJmx();
     }
 }
