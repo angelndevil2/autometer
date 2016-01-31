@@ -76,6 +76,8 @@ public class HTTPResultCalculator implements Runnable {
 
     public void clear() {
         doEndJob();
+        resultViewer.clear();
+        totalCalculator.clear();
         calculators.clear();
         q.clear();
     }

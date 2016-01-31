@@ -70,6 +70,6 @@ public @Data class AutoMeterResultCollector extends ResultCollector {
             }*/
         }
 
-        super.sampleOccurred(e);
+        //super.sampleOccurred(e);
     }
 }

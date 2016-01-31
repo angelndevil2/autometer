@@ -14,18 +14,32 @@ import java.util.Formatter;
 @Data
 public class ResultViewer implements Runnable {
 
+    private boolean needClear = true;
+
     private final static String FORMAT =
-            "label=%s," +
-            " #Samples=%d," +
-            " Average=%.2f," +
-            " Min=%d," +
-            " Max=%d," +
-            " Std. Dev.=%.2f," +
-            " Error %%=%.2f," +
-            " Throughput=%.2f," +
-            " KB/sec=%.2f," +
-            " Avg. Bytes=%.2f," +
-            " cpu busy=%.2f";
+            "%15s" +
+            "%15d" +
+            "%15.2f" +
+            "%15d" +
+            "%15d" +
+            "%15.2f" +
+            "%15.2f" +
+            "%15.2f" +
+            "%15.2f" +
+            "%15.2f" +
+            "%15.2f";
+    private final static String HEADER = String.format(
+            "%15s"+
+            "%15s" +
+            "%15s" +
+            "%15s" +
+            "%15s" +
+            "%15s" +
+            "%15s" +
+            "%15s" +
+            "%15s" +
+            "%15s" +
+            "%15s", "label", "#Samples", "Average", "Min", " Max", "Std. Dev.", "Error %", "Throughput", "KB/sec", "Avg. Bytes", "cpu");
 
     private final AbstractQ q = new AbstractQ() {};
 
@@ -34,11 +48,14 @@ public class ResultViewer implements Runnable {
     public Object take() throws InterruptedException { return  q.take(); }
 
     public void show(Object obj) {
-
-        if (obj instanceof StatisticSample) {
+        if (needClear) {
             System.out.print("\033[H\033[2J");
             System.out.println();
             System.out.println();
+            System.out.println(HEADER);
+            needClear = false;
+        }
+        if (obj instanceof StatisticSample) {
             Formatter f = new Formatter();
             f.format(FORMAT,
                     ((StatisticSample) obj).getName(),
@@ -52,7 +69,7 @@ public class ResultViewer implements Runnable {
                     ((StatisticSample) obj).getBytesPerSec() / 1024,
                     ((StatisticSample) obj).getAvgPageBytes(),
                     ((StatisticSample) obj).getCpuBusyPercentage());
-            System.out.println(f);
+            System.out.print(f);System.out.print('\r');
         }
     }
 
@@ -73,5 +90,9 @@ public class ResultViewer implements Runnable {
         t.setDaemon(true);
         t.start();
         return t;
+    }
+
+    public void clear() {
+        needClear = true;
     }
 }
