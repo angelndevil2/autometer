@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+By default, the configuration file will be scanned for changes once every minute.
+You can specify a different scanning period by setting the scanPeriod attribute of the <configuration> element.
+Values can be specified in units of milliseconds, seconds, minutes or hours.
+-->
+<configuration scan="true" scanPeriod="30 seconds">
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>%d{HH:mm} %-5level %logger{36} - %msg%n</Pattern>
+        </layout>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>autometer.log</file>
+        <encoder>
+            <pattern>%date %-4relative [%thread] %-5level %logger{35} %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- in the absence of the class attribute, assume
+   ch.qos.logback.core.hook.DelayingShutdownHook -->
+    <shutdownHook/>
+
+    <!-- Strictly speaking, the level attribute is not necessary since -->
+    <!-- the level of the root level is set to DEBUG by default.       -->
+    <root level="DEBUG">
+        <appender-ref ref="FILE" />
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>
