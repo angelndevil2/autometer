@@ -3,13 +3,13 @@ automated jmeter with java code
 
 ## installed directory structure
 
-    AUTOMETER_HOME
+    autometer home
         +bin/
         +conf/
 
 ## usage
 
-1. set env "AUTOMETER_HOME" or set property autometer.home
+1. setDirs(String) : set autometer home
 
 2. setNumOfThread(int)
 

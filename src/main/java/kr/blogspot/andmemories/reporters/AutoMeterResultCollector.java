@@ -4,7 +4,7 @@ import kr.blogspot.andmemories.common.AutometerHTTPSampleResult;
 import kr.blogspot.andmemories.common.HTTPResultCalculator;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.jmeter.protocol.http.sampler.HTTPSampleResult;
 import org.apache.jmeter.reporters.ResultCollector;
 import org.apache.jmeter.reporters.Summariser;
@@ -16,7 +16,7 @@ import java.util.HashMap;
 /**
  * @author k, Created on 16. 1. 29.
  */
-@Log4j
+@Slf4j
 @EqualsAndHashCode(callSuper = true)
 public @Data class AutoMeterResultCollector extends ResultCollector {
 

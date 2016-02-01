@@ -3,7 +3,7 @@ package kr.blogspot.andmemories.common;
 import kr.blogspot.andmemories.ResultViewer;
 import lombok.Data;
 import lombok.NonNull;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.util.Calculator;
 
@@ -12,7 +12,7 @@ import java.util.HashMap;
 /**
  * @author k, Created on 16. 1. 31.
  */
-@Log4j
+@Slf4j
 @Data
 public class HTTPResultCalculator implements Runnable {
 
@@ -83,7 +83,7 @@ public class HTTPResultCalculator implements Runnable {
     }
 
     private void doEndJob() {
-
+        log.debug("calculate end");
     }
 
     public boolean offer(SampleResult sampleResult) { return q.offer(sampleResult); }

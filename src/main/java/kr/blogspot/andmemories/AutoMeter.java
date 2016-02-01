@@ -3,11 +3,12 @@ package kr.blogspot.andmemories;
 import kr.blogspot.andmemories.common.HTTPResultCalculator;
 import kr.blogspot.andmemories.reporters.AutoMeterResultCollector;
 import kr.blogspot.andmemories.reporters.SystemInfoCollector;
-import lombok.AccessLevel;
+import kr.blogspot.andmemories.util.PropertiesUtil;
 import lombok.Data;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
 import org.apache.jmeter.config.Argument;
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.config.gui.ArgumentsPanel;
@@ -51,7 +52,7 @@ import java.util.List;
  *
  * @author k, Created on 16. 1. 26.
  */
-@Log4j
+@Slf4j
 public @Data class AutoMeter {
 
     private final static String DEFAULT_TEST_PLAN_NAME = "test plan form java code";
@@ -61,12 +62,6 @@ public @Data class AutoMeter {
 
     private JMeterEngine jmeter;
     private final List<Sampler> sampler = new ArrayList<Sampler>();
-    @Setter(AccessLevel.NONE)
-    private String baseDir;
-    @Setter(AccessLevel.NONE)
-    private String confDir;
-    @Setter(AccessLevel.NONE)
-    private String binDir;
     private final HashTree testPlanTree = new HashTree();
     private LoopController loopController;
     private ThreadGroup threadGroup;
@@ -99,28 +94,14 @@ public @Data class AutoMeter {
      * {@link LoopController}'s test loop count
      */
     private int loopCount  = 1;
-    /**
-     * set directory's from env or properties
-     */
-    private void prepareTest() {
-        if (baseDir == null) {
-            String baseDir = System.getenv("AUTOMETER_HOME");
-            if (baseDir == null) {
-                baseDir = System.getProperty("autometer.home");
-            }
-            if (baseDir == null) baseDir = ".";
-
-            setBaseDir(baseDir);
-        }
-    }
 
     /**
      * JMeter initialization (properties, log levels, locale, etc)
      */
     private void initJMeter() {
 
-        JMeterUtils.setJMeterHome(baseDir);
-        JMeterUtils.loadJMeterProperties(confDir+ File.separator +"jmeter.properties");
+        JMeterUtils.setJMeterHome(PropertiesUtil.getBaseDir());
+        JMeterUtils.loadJMeterProperties(PropertiesUtil.getJMeterPropertiesFile());
         JMeterUtils.initLogging();// you can comment this line out to see extra log messages of i.e. DEBUG level
         JMeterUtils.initLocale();
         userDefinedArguments = (Arguments) new ArgumentsPanel().createTestElement();
@@ -139,6 +120,7 @@ public @Data class AutoMeter {
         loopController.setProperty(TestElement.GUI_CLASS, LoopControlPanel.class.getName());
     }
 
+    public void setDirs(@NonNull String baseDir) throws IOException { PropertiesUtil.setDirs(baseDir); }
     /**
      * Thread Group
      */
@@ -167,15 +149,6 @@ public @Data class AutoMeter {
         testPlan.setUserDefinedVariables(userDefinedArguments);
         testPlan.setProperty(TestElement.TEST_CLASS, TestPlan.class.getName());
         testPlan.setProperty(TestElement.GUI_CLASS, TestPlanGui.class.getName());
-    }
-
-    /**
-     * set application directories
-     */
-    public void setBaseDir(@NonNull final String baseDir) {
-        this.baseDir = baseDir;
-        this.confDir = baseDir + File.separator + "conf";
-        this.binDir = baseDir + File.separator + "bin";
     }
 
     /**
@@ -227,8 +200,6 @@ public @Data class AutoMeter {
      * {@link #addHttpSampler(HTTPSamplerProxy)} or {@link #addHttpSampler(String, int, String, String)} should be called before this method called
      */
     void constructTestPlan() {
-
-        prepareTest();
 
         //JMeter Engine
         setJmeter(new StandardJMeterEngine());
@@ -326,7 +297,28 @@ public @Data class AutoMeter {
         ((StandardJMeterEngine)jmeter).run();
     }
 
-    public static void main(String[] args) {
+    private static final CmdOptions options = new CmdOptions();
+
+    public static void main(String[] args) throws ParseException {
+
+        options.setArgs(args);
+        CommandLine cmd = options.getCmd();
+
+        if (cmd.hasOption("h")) {
+            options.printUsage();
+            return;
+        }
+
+        if (cmd.hasOption("d")) {
+
+            try {
+                PropertiesUtil.setDirs(cmd.getOptionValue("d").trim());
+
+            } catch (IOException e) {
+
+                System.err.println(PropertiesUtil.getConfDir() + File.separator + PropertiesUtil.AppProperties + " not found. may use -d option" + e);
+            }
+        }
 
         AutoMeter autoMeter = new AutoMeter();
         autoMeter.doTest();

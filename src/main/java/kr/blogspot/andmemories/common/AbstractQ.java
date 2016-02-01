@@ -1,14 +1,12 @@
 package kr.blogspot.andmemories.common;
 
 import lombok.Data;
-import lombok.extern.log4j.Log4j;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * @author k, Created on 16. 1. 31.
  */
-@Log4j
 @Data
 public abstract class AbstractQ {
 

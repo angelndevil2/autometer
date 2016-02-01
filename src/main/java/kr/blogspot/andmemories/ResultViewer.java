@@ -3,14 +3,14 @@ package kr.blogspot.andmemories;
 import kr.blogspot.andmemories.common.AbstractQ;
 import kr.blogspot.andmemories.common.StatisticSample;
 import lombok.Data;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Formatter;
 
 /**
  * @author k, Created on 16. 1. 31.
  */
-@Log4j
+@Slf4j
 @Data
 public class ResultViewer implements Runnable {
 

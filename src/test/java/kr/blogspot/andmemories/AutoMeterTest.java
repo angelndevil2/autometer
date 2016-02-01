@@ -10,11 +10,13 @@ import java.io.IOException;
 public class AutoMeterTest {
 
     @Test
-    public void MainTest() {
+    public void MainTest() throws IOException {
+
         AutoMeter autoMeter = new AutoMeter();
+        autoMeter.setDirs("src/dist");
         autoMeter.setNumOfThread(10);
         autoMeter.addHttpSampler("localhost", 8080, "/", "GET");
-        autoMeter.setCollectRemoteSystemInfo(true);
+        autoMeter.setCollectRemoteSystemInfo(false);
         autoMeter.setLoopCount(10);
         autoMeter.doTest();
     }
@@ -22,6 +24,7 @@ public class AutoMeterTest {
     @Test
     public void saveJMX() throws IOException {
         AutoMeter autoMeter = new AutoMeter();
+        autoMeter.setDirs("src/dist");
 
         autoMeter.setTestPlanName("test plan from java code");
         autoMeter.printTestPlanJmx();

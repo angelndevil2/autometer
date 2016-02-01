@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
 
 BIN_DIR=$(dirname "$0")
-export AUTOMETER_HOME="$BIN_DIR/.."
-exec "${BIN_DIR}/autometer" "$@"
+exec "${BIN_DIR}/autometer" -d "${BIN_DIR}/.." "$@"

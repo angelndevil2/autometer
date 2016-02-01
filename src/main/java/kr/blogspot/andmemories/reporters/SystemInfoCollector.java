@@ -3,7 +3,7 @@ package kr.blogspot.andmemories.reporters;
 import com.tistory.devilnangel.client.RmiSystemInfoClient;
 import com.tistory.devilnangel.common.IRmiCpuInfo;
 import lombok.Data;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 
 import java.rmi.RemoteException;
 
@@ -14,7 +14,7 @@ import java.rmi.RemoteException;
  * @author k, Created on 16. 1. 31.
  */
 @Data
-@Log4j
+@Slf4j
 public class SystemInfoCollector implements Runnable {
 
     public static final long COLLECT_INTERVAL = 1000;
