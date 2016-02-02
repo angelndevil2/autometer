@@ -1,9 +1,10 @@
-package kr.blogspot.andmemories;
+package kr.blogspot.andmemories.autometer;
 
-import kr.blogspot.andmemories.common.HTTPResultCalculator;
-import kr.blogspot.andmemories.reporters.AutoMeterResultCollector;
-import kr.blogspot.andmemories.reporters.SystemInfoCollector;
-import kr.blogspot.andmemories.util.PropertiesUtil;
+import kr.blogspot.andmemories.autometer.common.HTTPResultCalculator;
+import kr.blogspot.andmemories.autometer.reporters.AutoMeterResultCollector;
+import kr.blogspot.andmemories.autometer.reporters.SystemInfoCollector;
+import kr.blogspot.andmemories.autometer.savers.CVSFileSaver;
+import kr.blogspot.andmemories.autometer.util.PropertiesUtil;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +33,9 @@ import org.apache.jmeter.visualizers.SummaryReport;
 import org.apache.jorphan.collections.HashTree;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -135,7 +138,6 @@ public @Data class AutoMeter {
             if (loopController == null) initDefaultLoopController();
             threadGroup.setSamplerController(loopController);
             loopController.setContinueForever(loopForever); // must be after setSamplerController
-
 
             threadGroup.setProperty(TestElement.TEST_CLASS, ThreadGroup.class.getName());
             threadGroup.setProperty(TestElement.GUI_CLASS, ThreadGroupGui.class.getName());
@@ -295,6 +297,10 @@ public @Data class AutoMeter {
         // Run Test Plan
         getJmeter().configure(testPlanTree);
         ((StandardJMeterEngine)jmeter).run();
+    }
+
+    public void setCSVSaveFile(String filename) throws FileNotFoundException, UnsupportedEncodingException {
+        resultViewer.setSaver(new CVSFileSaver(filename));
     }
 
     private static final CmdOptions options = new CmdOptions();

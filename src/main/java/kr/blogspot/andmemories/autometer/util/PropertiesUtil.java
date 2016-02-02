@@ -1,4 +1,4 @@
-package kr.blogspot.andmemories.util;
+package kr.blogspot.andmemories.autometer.util;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;

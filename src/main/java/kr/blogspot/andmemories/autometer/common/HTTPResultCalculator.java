@@ -1,6 +1,6 @@
-package kr.blogspot.andmemories.common;
+package kr.blogspot.andmemories.autometer.common;
 
-import kr.blogspot.andmemories.ResultViewer;
+import kr.blogspot.andmemories.autometer.ResultViewer;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -63,6 +63,8 @@ public class HTTPResultCalculator implements Runnable {
         sample.setCount(totalCalculator.getCount());
         sample.setMax(totalCalculator.getMax());
         sample.setMin(totalCalculator.getMin());
+        sample.setTotalThread(sampleResult.getAllThreads());
+        sample.setTimestamp(sampleResult.getTimeStamp());
         if (resultViewer != null) resultViewer.offer(sample);
 
     }
@@ -74,7 +76,7 @@ public class HTTPResultCalculator implements Runnable {
         return t;
     }
 
-    public void clear() {
+    public void clear() throws AutoMeterException {
         doEndJob();
         resultViewer.clear();
         totalCalculator.clear();

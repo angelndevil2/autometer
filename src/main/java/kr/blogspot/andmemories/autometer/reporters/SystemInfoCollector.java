@@ -1,7 +1,7 @@
-package kr.blogspot.andmemories.reporters;
+package kr.blogspot.andmemories.autometer.reporters;
 
-import com.tistory.devilnangel.client.RmiSystemInfoClient;
-import com.tistory.devilnangel.common.IRmiCpuInfo;
+import com.tistory.devilnangel.systeminfo.client.RmiSystemInfoClient;
+import com.tistory.devilnangel.systeminfo.common.IRmiCpuInfo;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,7 +34,7 @@ public class SystemInfoCollector implements Runnable {
         try {
             cpuInfo = new RmiSystemInfoClient(domain).getCpuInfo();
         } catch (Exception e) {
-            log.error(domain+" exception ", e);
+            log.error("{} remote exception {}", domain, e);
             return;
         }
 
@@ -43,7 +43,7 @@ public class SystemInfoCollector implements Runnable {
                 cpuBusy = cpuInfo.getCpuBusy();
                 Thread.sleep(COLLECT_INTERVAL);
             } catch (RemoteException e) {
-                log.error(domain+" remote exception ", e);
+                log.error("{} remote exception {}", domain, e);
                 return;
             } catch (InterruptedException e) {
                 return;

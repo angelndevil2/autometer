@@ -1,7 +1,8 @@
-package kr.blogspot.andmemories.reporters;
+package kr.blogspot.andmemories.autometer.reporters;
 
-import kr.blogspot.andmemories.common.AutometerHTTPSampleResult;
-import kr.blogspot.andmemories.common.HTTPResultCalculator;
+import kr.blogspot.andmemories.autometer.common.AutoMeterException;
+import kr.blogspot.andmemories.autometer.common.AutometerHTTPSampleResult;
+import kr.blogspot.andmemories.autometer.common.HTTPResultCalculator;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -30,9 +31,13 @@ public @Data class AutoMeterResultCollector extends ResultCollector {
     }
 
     @Override
-    public void testStarted(String host) {
-        calculator.clear();
-        super.testStarted(host);
+    public void testEnded(String host) {
+        try {
+            calculator.clear();
+        } catch (AutoMeterException e) {
+            log.error("clear exception.",e);
+        }
+        super.testEnded(host);
     }
 
     @Override
@@ -40,34 +45,12 @@ public @Data class AutoMeterResultCollector extends ResultCollector {
         SampleResult r = e.getResult();
         if (isSampleWanted(r.isSuccessful())) {
             String host = r.getURL().getHost();
-            //String path = r.getURL().getPath();
             SystemInfoCollector sic = httpDomains == null || host == null ? null : httpDomains.get(host);
             if (r instanceof HTTPSampleResult) {
                 AutometerHTTPSampleResult result = new AutometerHTTPSampleResult((HTTPSampleResult) r);
                 result.setCpuBusy(sic == null ? 0D:sic.getCpuBusy());
                 if (!calculator.offer(result)) log.error("calculating queue is full.");
             }
-
-
-            /*System.out.print("\033[H\033[2J");
-            System.out.println();
-            System.out.println();
-            for (String p : calculators.keySet()) {
-                Formatter f = new Formatter();
-                f.format(FORMAT,
-                        p,
-                        calculators.get(p).getCount(),
-                        calculators.get(p).getMean(),
-                        calculators.get(p).getMin(),
-                        calculators.get(p).getMax(),
-                        calculators.get(p).getStandardDeviation(),
-                        calculators.get(p).getErrorPercentage(),
-                        calculators.get(p).getRate(),
-                        calculators.get(p).getBytesPerSecond() / 1024,
-                        calculators.get(p).getAvgPageBytes(),
-                        sic == null ? 0F : sic.getCpuBusy());
-                System.out.println(f);
-            }*/
         }
 
         //super.sampleOccurred(e);

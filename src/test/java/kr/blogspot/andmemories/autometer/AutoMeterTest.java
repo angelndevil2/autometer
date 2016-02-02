@@ -1,4 +1,4 @@
-package kr.blogspot.andmemories;
+package kr.blogspot.andmemories.autometer;
 
 import org.junit.Test;
 
