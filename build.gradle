@@ -6,7 +6,7 @@ apply plugin: 'maven'
 apply plugin: 'application'
 
 sourceCompatibility = 1.6
-mainClassName = "kr.blogspot.andmemories.AutoMeter"
+mainClassName = "kr.blogspot.andmemories.autometer.AutoMeter"
 
 startScripts {
     classpath = files("*")
@@ -58,7 +58,7 @@ jar {
     manifest {
         attributes("Implementation-Title": project.group + ":" + project.name,
                 "Implementation-Version": version,
-                "Main-Class": "kr.blogspot.andmemories.AutoMeter"
+                "Main-Class": "kr.blogspot.andmemories.autometer.AutoMeter"
         )
     }
 }
