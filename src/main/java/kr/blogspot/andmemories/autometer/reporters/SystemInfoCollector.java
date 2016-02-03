@@ -34,7 +34,7 @@ public class SystemInfoCollector implements Runnable {
         try {
             cpuInfo = new RmiSystemInfoClient(domain).getCpuInfo();
         } catch (Exception e) {
-            log.error("{} remote exception {}", domain, e);
+            log.error("{} remote exception", domain, e);
             return;
         }
 
@@ -43,7 +43,7 @@ public class SystemInfoCollector implements Runnable {
                 cpuBusy = cpuInfo.getCpuBusy();
                 Thread.sleep(COLLECT_INTERVAL);
             } catch (RemoteException e) {
-                log.error("{} remote exception {}", domain, e);
+                log.error("{} remote exception", domain, e);
                 return;
             } catch (InterruptedException e) {
                 return;
