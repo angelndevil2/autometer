@@ -1,4 +1,4 @@
-package kr.blogspot.andmemories.autometer.reporters;
+package com.tistory.devilnangel.autometer.reporters;
 
 import com.tistory.devilnangel.systeminfo.client.RmiSystemInfoClient;
 import com.tistory.devilnangel.systeminfo.common.IRmiCpuInfo;

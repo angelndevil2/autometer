@@ -1,9 +1,9 @@
-package kr.blogspot.andmemories.autometer;
+package com.tistory.devilnangel.autometer;
 
-import kr.blogspot.andmemories.autometer.common.IResultSaver;
-import kr.blogspot.andmemories.autometer.common.AbstractQ;
-import kr.blogspot.andmemories.autometer.common.AutoMeterException;
-import kr.blogspot.andmemories.autometer.common.StatisticSample;
+import com.tistory.devilnangel.autometer.common.IResultSaver;
+import com.tistory.devilnangel.autometer.common.AbstractQ;
+import com.tistory.devilnangel.autometer.common.AutoMeterException;
+import com.tistory.devilnangel.autometer.common.StatisticSample;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 

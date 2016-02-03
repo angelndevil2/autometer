@@ -1,8 +1,8 @@
-package kr.blogspot.andmemories.autometer.reporters;
+package com.tistory.devilnangel.autometer.reporters;
 
-import kr.blogspot.andmemories.autometer.common.AutoMeterException;
-import kr.blogspot.andmemories.autometer.common.AutometerHTTPSampleResult;
-import kr.blogspot.andmemories.autometer.common.HTTPResultCalculator;
+import com.tistory.devilnangel.autometer.common.AutometerHTTPSampleResult;
+import com.tistory.devilnangel.autometer.common.AutoMeterException;
+import com.tistory.devilnangel.autometer.common.HTTPResultCalculator;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package kr.blogspot.andmemories.autometer;
+package com.tistory.devilnangel.autometer;
 
 import org.junit.Test;
 

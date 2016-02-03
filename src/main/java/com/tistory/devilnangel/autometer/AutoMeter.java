@@ -1,10 +1,10 @@
-package kr.blogspot.andmemories.autometer;
+package com.tistory.devilnangel.autometer;
 
-import kr.blogspot.andmemories.autometer.common.HTTPResultCalculator;
-import kr.blogspot.andmemories.autometer.reporters.AutoMeterResultCollector;
-import kr.blogspot.andmemories.autometer.reporters.SystemInfoCollector;
-import kr.blogspot.andmemories.autometer.savers.CVSFileSaver;
-import kr.blogspot.andmemories.autometer.util.PropertiesUtil;
+import com.tistory.devilnangel.autometer.common.HTTPResultCalculator;
+import com.tistory.devilnangel.autometer.reporters.AutoMeterResultCollector;
+import com.tistory.devilnangel.autometer.reporters.SystemInfoCollector;
+import com.tistory.devilnangel.autometer.savers.CVSFileSaver;
+import com.tistory.devilnangel.autometer.util.PropertiesUtil;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;

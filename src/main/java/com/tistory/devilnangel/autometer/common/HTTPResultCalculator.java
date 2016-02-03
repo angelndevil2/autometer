@@ -1,6 +1,6 @@
-package kr.blogspot.andmemories.autometer.common;
+package com.tistory.devilnangel.autometer.common;
 
-import kr.blogspot.andmemories.autometer.ResultViewer;
+import com.tistory.devilnangel.autometer.ResultViewer;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;

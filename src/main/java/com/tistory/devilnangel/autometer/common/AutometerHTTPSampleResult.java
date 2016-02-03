@@ -1,4 +1,4 @@
-package kr.blogspot.andmemories.autometer.common;
+package com.tistory.devilnangel.autometer.common;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

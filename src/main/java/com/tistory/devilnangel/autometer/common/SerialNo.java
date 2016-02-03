@@ -1,4 +1,4 @@
-package kr.blogspot.andmemories.autometer.common;
+package com.tistory.devilnangel.autometer.common;
 
 /**
  * @author k, Created on 16. 2. 2.

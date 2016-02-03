@@ -1,8 +1,8 @@
-package kr.blogspot.andmemories.autometer.savers;
+package com.tistory.devilnangel.autometer.savers;
 
-import kr.blogspot.andmemories.autometer.common.IResultSaver;
-import kr.blogspot.andmemories.autometer.common.AutoMeterException;
-import kr.blogspot.andmemories.autometer.common.StatisticSample;
+import com.tistory.devilnangel.autometer.common.IResultSaver;
+import com.tistory.devilnangel.autometer.common.StatisticSample;
+import com.tistory.devilnangel.autometer.common.AutoMeterException;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
