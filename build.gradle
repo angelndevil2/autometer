@@ -1,4 +1,4 @@
-group 'kr.blogspot.andmemories'
+group 'com.tistory.devilnangel'
 version '0.0.1'
 
 apply plugin: 'java'
@@ -6,7 +6,7 @@ apply plugin: 'maven'
 apply plugin: 'application'
 
 sourceCompatibility = 1.6
-mainClassName = "kr.blogspot.andmemories.autometer.AutoMeter"
+mainClassName = "com.tistory.devilnangel.autometer.AutoMeter"
 
 startScripts {
     classpath = files("*")
@@ -14,7 +14,6 @@ startScripts {
 
 repositories {
     mavenCentral()
-    mavenLocal()
 }
 
 dependencies {
@@ -58,15 +57,14 @@ jar {
     manifest {
         attributes("Implementation-Title": project.group + ":" + project.name,
                 "Implementation-Version": version,
-                "Main-Class": "kr.blogspot.andmemories.autometer.AutoMeter"
+                "Main-Class": "com.tistory.devilnangel.autometer.AutoMeter"
         )
     }
 }
 
-// util.jar
 task samplerJar(type: Jar) {
     from(sourceSets.main.output) {
-        include 'kr/blogspot/andmemories/samplers/**'
+        include 'com.tistory.devilnangel/autometer/samplers/**'
     }
     baseName = project.name+'-sampler'
 }
