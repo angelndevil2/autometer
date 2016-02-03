@@ -38,6 +38,11 @@ public class CVSFileSaver implements IResultSaver {
         else throw new AutoMeterException(filename+" has error.");
     }
 
+    @Override
+    public void writeHeader(String header) {
+        out.println(header);
+    }
+
     private PrintWriter getFileWriter(String filename) throws FileNotFoundException, UnsupportedEncodingException {
 
         PrintWriter writer = null;

@@ -10,5 +10,7 @@ public interface IResultSaver {
 
     void save(StatisticSample r);
 
+    void writeHeader(String header);
+
     void close() throws AutoMeterException;
 }

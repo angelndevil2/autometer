@@ -51,6 +51,18 @@ public class ResultViewer implements Runnable {
             "%15s" +
             "%15s", "label", "#Samples", "Average", "Min", " Max", "Std. Dev.", "Error %", "Throughput", "KB/sec", "Avg. Bytes", "cpu");
 
+    private final static String CSV_RESULT_HEADER = String.format(
+            "%15s"+
+                    "%15s" +
+                    "%15s" +
+                    "%15s" +
+                    "%15s" +
+                    "%15s" +
+                    "%15s" +
+                    "%15s" +
+                    "%15s" +
+                    "%15s" +
+                    "%15s", "label", "#Samples", "Average", "Min", " Max", "Std. Dev.", "Error %", "Throughput", "KB/sec", "Avg. Bytes", "cpu");
     private final AbstractQ q = new AbstractQ() {};
 
     public boolean offer(Object obj) { return q.offer(obj); }
@@ -64,6 +76,10 @@ public class ResultViewer implements Runnable {
             System.out.println();
             System.out.println(HEADER);
             needClear = false;
+
+            if (saver != null) {
+                saver.writeHeader(CSV_RESULT_HEADER);
+            }
         }
         if (obj instanceof StatisticSample) {
 
