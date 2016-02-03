@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/angelndevil2/autometer.svg?branch=master)](https://travis-ci.org/angelndevil2/autometer)
+
 # autometer
 automated jmeter with java code
 
