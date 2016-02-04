@@ -1,5 +1,5 @@
 group 'com.tistory.devilnangel'
-version '0.0.1'
+version '0.0.1-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'maven'
