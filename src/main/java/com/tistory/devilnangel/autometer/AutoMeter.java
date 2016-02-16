@@ -3,7 +3,7 @@ package com.tistory.devilnangel.autometer;
 import com.tistory.devilnangel.autometer.common.HTTPResultCalculator;
 import com.tistory.devilnangel.autometer.reporters.AutoMeterResultCollector;
 import com.tistory.devilnangel.autometer.reporters.SystemInfoCollector;
-import com.tistory.devilnangel.autometer.savers.CVSFileSaver;
+import com.tistory.devilnangel.autometer.savers.CSVFileSaver;
 import com.tistory.devilnangel.autometer.util.PropertiesUtil;
 import lombok.Data;
 import lombok.NonNull;
@@ -300,7 +300,7 @@ public @Data class AutoMeter {
     }
 
     public void setCSVSaveFile(String filename) throws FileNotFoundException, UnsupportedEncodingException {
-        resultViewer.setSaver(new CVSFileSaver(filename));
+        resultViewer.setSaver(new CSVFileSaver(filename));
     }
 
     private static final CmdOptions options = new CmdOptions();

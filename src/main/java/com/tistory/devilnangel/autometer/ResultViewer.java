@@ -1,8 +1,8 @@
 package com.tistory.devilnangel.autometer;
 
-import com.tistory.devilnangel.autometer.common.IResultSaver;
 import com.tistory.devilnangel.autometer.common.AbstractQ;
 import com.tistory.devilnangel.autometer.common.AutoMeterException;
+import com.tistory.devilnangel.autometer.common.IResultSaver;
 import com.tistory.devilnangel.autometer.common.StatisticSample;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -52,17 +52,19 @@ public class ResultViewer implements Runnable {
             "%15s", "label", "#Samples", "Average", "Min", " Max", "Std. Dev.", "Error %", "Throughput", "KB/sec", "Avg. Bytes", "cpu");
 
     private final static String CSV_RESULT_HEADER = String.format(
-            "%15s"+
-                    "%15s" +
-                    "%15s" +
-                    "%15s" +
-                    "%15s" +
-                    "%15s" +
-                    "%15s" +
-                    "%15s" +
-                    "%15s" +
-                    "%15s" +
-                    "%15s", "label", "#Samples", "Average", "Min", " Max", "Std. Dev.", "Error %", "Throughput", "KB/sec", "Avg. Bytes", "cpu");
+            "%15s,"+
+                    "%15s," +
+                    "%15s," +
+                    "%15s," +
+                    "%15s," +
+                    "%15s," +
+                    "%15s," +
+                    "%15s," +
+                    "%15s," +
+                    "%15s," +
+                    "%15s," +
+                    "%15s," +
+                    "%15s", "label", "timestamp", "#Samples", "Average", "Min", " Max", "Std. Dev.", "Error %", "Throughput", "KB/sec", "Avg. Bytes", "cpu", "threads");
     private final AbstractQ q = new AbstractQ() {};
 
     public boolean offer(Object obj) { return q.offer(obj); }

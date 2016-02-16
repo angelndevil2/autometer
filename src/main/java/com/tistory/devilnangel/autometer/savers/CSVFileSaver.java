@@ -16,13 +16,13 @@ import java.io.*;
  */
 @Data
 @Slf4j
-public class CVSFileSaver implements IResultSaver {
+public class CSVFileSaver implements IResultSaver {
 
     private final String filename;
     @Getter(AccessLevel.NONE)
     private final PrintWriter out;
 
-    public CVSFileSaver(final String filename) throws FileNotFoundException, UnsupportedEncodingException {
+    public CSVFileSaver(final String filename) throws FileNotFoundException, UnsupportedEncodingException {
         this.filename = filename;
         out = getFileWriter(filename);
     }
